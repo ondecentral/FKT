@@ -12,6 +12,7 @@ describe("FKToken", function() {
 		[owner] = await ethers.getSigners();
 		FKToken = await ethers.getContractFactory("FKToken");
 		fkToken = await FKToken.deploy(100000000,500);
+
 		await fkToken.deployed()
 	})
 
