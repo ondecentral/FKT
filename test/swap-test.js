@@ -38,50 +38,33 @@ describe("FKToken", function() {
 		tokenSwap = await TokenSwap.deploy(
 			fkToken.address,
 			addr1.address,
-			222, 
+			22200000000000, 
 			luciToken.address,
 			addr2.address,
-			111  
+			11100000000000  
 		);
 		await tokenSwap.deployed()
 
-		// interesting things happen here
+
 		await fkToken.transfer(addr1.address,22200000000000)
 		await luciToken.transfer(addr2.address,11100000000000)
 		expect(await fkToken.balanceOf(addr1.address)).to.equal(22200000000000)
 		expect(await luciToken.balanceOf(addr2.address)).to.equal(11100000000000)
 
-		await luciToken.connect(addr1).approve(tokenSwap.address, 22200000000000);
-		await fkToken.connect(addr2).approve(tokenSwap.address, 11100000000000);
-		let allowedTokensSCLuci = await luciToken.allowance(addr1.address, tokenSwap.address);
-		let allowedTokensSCFKT = await fkToken.allowance(addr2.address, tokenSwap.address);
-		expect(ethers.utils.formatEther(allowedTokensSCLuci)).to.equal('0.0000222');
-		expect(ethers.utils.formatEther(allowedTokensSCFKT)).to.equal('0.0000111');
+		await fkToken.connect(addr1).approve(tokenSwap.address, 22200000000000);
+		await luciToken.connect(addr2).approve(tokenSwap.address, 11100000000000);
+		let allowedTokensSCFKT = await fkToken.allowance(addr1.address, tokenSwap.address);
+		let allowedTokensSCLuci = await luciToken.allowance(addr2.address, tokenSwap.address);
+		expect(ethers.utils.formatEther(allowedTokensSCFKT)).to.equal('0.0000222');
+		expect(ethers.utils.formatEther(allowedTokensSCLuci)).to.equal('0.0000111');
 
-		console.log("allowedTokensSCLuci: ",allowedTokensSCLuci);
-		console.log("allowedTokensSCFKT: ",allowedTokensSCFKT);
-		// end interesting things
-		
-		await tokenSwap.connect(addr1).swap()
+		// anyone can call the swap function
+		await tokenSwap.connect(addr2).swap()
 
-
-		let bal1 = await luciToken.balanceOf(addr2.address)
-		let bal2 = await fkToken.balanceOf(addr1.address)
-		console.log("bal1, bal2: ",bal1, bal2)
-		// // console.log("tokenSwap: ",tokenSwap);
-
-		// /**
-		// address _token1,
-        // address _owner1,
-        // uint _amount1,
-        // address _token2,
-        // address _owner2,
-        // uint _amount2
-        // */
-
-        // await tokenSwap.swap()
-        // expect(await luciToken.balanceOf(owner.address)).to.equal(111);
-        // expect(await fkToken.balanceOf(addr1.address)).to.equal(222);
+		expect(await fkToken.balanceOf(addr2.address)).to.equal(22200000000000);
+		expect(await luciToken.balanceOf(addr1.address)).to.equal(11100050000000);
+		expect(await fkToken.balanceOf(addr1.address)).to.equal(0)
+		expect(await luciToken.balanceOf(addr2.address)).to.equal(0)		
 
 	})
 

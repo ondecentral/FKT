@@ -38,8 +38,7 @@ contract TokenSwap {
     }
 
     function swap() public {
-        // require(msg.sender == owner1 || msg.sender == owner2, "Not authorized"); 
-        // is above really needed?
+        require(msg.sender == owner1 || msg.sender == owner2, "Not authorized"); 
         require(
             token1.allowance(owner1, address(this)) >= amount1,
             "Token 1 allowance too low"
