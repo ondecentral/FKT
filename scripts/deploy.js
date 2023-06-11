@@ -27,22 +27,21 @@ async function main() {
   await luciToken.deployed();
 
   let TokenSwap = await ethers.getContractFactory("TokenSwap");
-    tokenSwap = await TokenSwap.deploy(
-      fkToken.address,
-      addr1.address,
-      22200000000000, 
-      luciToken.address,
-      addr2.address,
-      11100000000000  
-    );
-    await tokenSwap.deployed()
+  let tokenSwap = await TokenSwap.deploy(
+    fkToken.address,
+    addr1.address,
+    22200000000000, 
+    luciToken.address,
+    addr2.address,
+    11100000000000  
+  );
+  await tokenSwap.deployed();
 
   console.log(
     `Lock with ${ethers.utils.formatEther(
       lockedAmount
     )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
   );
-
   console.log(`FKToken deployed to ${fkToken.address}`);
   console.log(`LuciaToken deployed to ${luciToken.address}`);
   
