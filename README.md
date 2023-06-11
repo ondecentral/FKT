@@ -48,3 +48,9 @@ Next this line should work
 ```zsh
 npx hardhat compile
 ```
+
+# Deployment
+
+```zsh
+npx hardhat run scripts/deploy.js --network sepolia
+```

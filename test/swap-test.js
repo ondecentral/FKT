@@ -10,7 +10,8 @@ describe("FKToken", function() {
 	let fkToken;
 	let LuciaToken;
 	let luciToken;
-
+	let TokenSwap;
+	
 	beforeEach(async function() {
 		[owner, addr1] = await ethers.getSigners();
 		FKToken = await ethers.getContractFactory("FKToken");
