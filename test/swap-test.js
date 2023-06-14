@@ -69,4 +69,42 @@ describe("FKToken", function() {
 
 	})
 
+	it("Should get hard coded price of eth", async function () {
+		[owner, addr1, addr2] = await ethers.getSigners();
+		await luciToken.transfer(addr1.address,50000000)
+		TokenSwap = await ethers.getContractFactory("TokenSwap");
+		tokenSwap = await TokenSwap.deploy(
+			fkToken.address,
+			addr1.address,
+			22200000000000, 
+			luciToken.address,
+			addr2.address,
+			11100000000000  
+		);
+		await tokenSwap.deployed()
+
+		expect(await tokenSwap.getPrice("ETH/USD")).to.equal(1648);
+		expect(await tokenSwap.getPrice("AVAX/USD")).to.equal(11);
+		expect(await tokenSwap.getPrice("DAI/USD")).to.equal(1);
+		expect(await tokenSwap.getPrice("UNI/USD")).to.equal(4);
+	})
+
+	it('should get converted amount of stablecoin when deposits an amount of eth', async function (){
+		[owner, addr1, addr2] = await ethers.getSigners();
+		await luciToken.transfer(addr1.address,50000000)
+		TokenSwap = await ethers.getContractFactory("TokenSwap");
+		tokenSwap = await TokenSwap.deploy(
+			fkToken.address,
+			addr1.address,
+			22200000000000, 
+			luciToken.address,
+			addr2.address,
+			11100000000000  
+		);
+		await tokenSwap.deployed()
+		// console.log("fkToken.address: ",fkToken.address);
+		tokenSwap.connect(owner).deposit(fkToken.address)
+
+	})
+
 })

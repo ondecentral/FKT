@@ -21,6 +21,10 @@ contract TokenSwap {
     address public owner2;
     uint public amount2;
 
+    mapping(string => uint) public prices;
+    mapping(address => mapping(address => uint)) balances;
+
+
     constructor(
         address _token1,
         address _owner1,
@@ -35,6 +39,12 @@ contract TokenSwap {
         token2 = IERC20(_token2);
         owner2 = _owner2;
         amount2 = _amount2;
+
+        prices["ETH/USD"] = 1648; //as of June 14th 2023
+        prices["AVAX/USD"] = 11;
+        prices["DAI/USD"] = 1;
+        prices["UNI/USD"] = 4;
+
     }
 
     function swap() public {
@@ -61,4 +71,14 @@ contract TokenSwap {
         bool sent = token.transferFrom(sender, recipient, amount);
         require(sent, "Token transfer failed");
     }
+
+    function getPrice(string memory tickerPair) public view returns (uint) {
+        return prices[tickerPair];
+    }
+
+    function deposit(address asset) payable public {
+        balances[asset][msg.sender] += msg.value;
+    }
+
+
 }
