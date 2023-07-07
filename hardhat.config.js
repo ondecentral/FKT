@@ -5,6 +5,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-contract-sizer");
+require("hardhat-gas-reporter");
 require("dotenv").config();
 
 module.exports = {
@@ -26,16 +27,13 @@ module.exports = {
       blockGasLimit: 352450000,
       allowUnlimitedContractSize: true
     },
-    testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+    goerli: {
+      url: process.env.GOERLI_URL,
       accounts: [process.env.PRIVATE_KEY],
     },
     mumbai: {
-      url: "https://matic-mumbai.chainstacklabs.com",
+      url: process.env.MUMBAI_URL,
       accounts: [process.env.PRIVATE_KEY],
-    },
-    hardhat: {
-      allowUnlimitedContractSize: true,
     },
   },
   etherscan: {
