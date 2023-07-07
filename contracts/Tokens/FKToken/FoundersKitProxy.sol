@@ -6,7 +6,6 @@ import "../../utils/Ownable.sol";
 import "../../utils/Address.sol";
 
 contract FoundersKitProxy is FoundersKitStorage {
-    address public target;
 
     constructor(
         address _newOwner,
@@ -21,6 +20,7 @@ contract FoundersKitProxy is FoundersKitStorage {
         // if (gasleft() <= 2300) {
         //     return;
         // }
+
         address target_ = target;
         bytes memory data = msg.data;
         assembly {

@@ -9,6 +9,7 @@ abstract contract FoundersKitStorage is Ownable {
     bytes32 public constant PERMIT_TYPEHASH =
         0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
 
+    address public target;
     mapping(address => uint256) internal _balances;
     mapping(address => mapping(address => uint256)) internal _allowances;
     mapping(address => bool) internal _frozen;
@@ -18,9 +19,11 @@ abstract contract FoundersKitStorage is Ownable {
     string internal _symbol = "FKT";
     uint8 internal _decimals = 18;
 
-    uint public minSendInterval;
+    uint public accountLockupPeriod; // Days
+    uint public contractLockupPeriod; // Days
+    uint256 public contractLockupStart; // Timstamp
     uint public maxSendAmount;
-    mapping(address => uint) public userLastTransfer;
+    mapping(address => uint) public userFirstMint;
 
     mapping(address => uint) public nonces;
     uint256 internal _cap;
@@ -28,9 +31,13 @@ abstract contract FoundersKitStorage is Ownable {
 
     event FreezeAccount(address indexed account);
     event UnfreezeAccount(address indexed account);
-    event UpdateMinSendInterval(
-        uint indexed previousMinSendInterval,
-        uint indexed newMinSendInterval
+    event UpdateAccountLockupPeriod(
+        uint indexed prevPeriod,
+        uint indexed newPeriod
+    );
+    event UpdateContractLockupPeriod(
+        uint indexed prevPeriod,
+        uint indexed newPeriod
     );
     event UpdateMaxSendAmount(
         uint indexed previousMaxSendAmount,

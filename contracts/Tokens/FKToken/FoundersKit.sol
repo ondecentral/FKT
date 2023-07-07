@@ -7,8 +7,6 @@ import "../../utils/Ownable.sol";
 import "./FoundersKitStorage.sol";
 
 contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
-    address public target;
-
     constructor() FoundersKitStorage(address(0x1)) {}
 
     receive() external payable {
@@ -33,6 +31,7 @@ contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
         _decimals = decimals_;
         _mint(receiver, 51000000 * (10 ** decimals_));
         _cap = cap_ * (10 ** _decimals);
+        contractLockupStart = block.timestamp;
     }
 
     function DOMAIN_SEPARATOR() public view returns (bytes32) {
@@ -168,26 +167,15 @@ contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
         require(!isFrozen(recipient), "FKT: Recipient's account is frozen");
         require(_balances[sender] >= amount, "FKT: Transfer exceeds balance");
 
-        if (maxSendAmount > 0) {
-            require(
-                amount <= maxSendAmount,
-                "FKT: Transfer amount exceeds allowed transfer"
-            );
-        }
-
-        if (minSendInterval > 0) {
-            require(
-                userLastTransfer[sender] + minSendInterval >= block.timestamp,
-                "FKT: Allowed transfer interval hasn't passed yet"
-            );
-            userLastTransfer[sender] = block.timestamp; //don't update userLastTransfer if  minSendInterval is 0
-        }
+        _beforeTokenTransfer(sender, recipient, amount);
 
         unchecked {
             _balances[sender] -= amount;
             _balances[recipient] += amount;
         }
         emit Transfer(sender, recipient, amount);
+
+        _afterTokenTransfer(sender, recipient, amount);
     }
 
     function _approve(address owner, address spender, uint256 amount) internal {
@@ -199,16 +187,21 @@ contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
     }
 
     function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "FKT: Burn from the zero address");
+        require(account != address(0), "FKT: burn from the zero address");
+
+        _beforeTokenTransfer(account, address(0), amount);
 
         uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, "FKT: Burn amount exceeds balance");
+        require(accountBalance >= amount, "FKT: burn amount exceeds balance");
         unchecked {
             _balances[account] = accountBalance - amount;
+            // Overflow not possible: amount <= accountBalance <= totalSupply.
+            _totalSupply -= amount;
         }
-        _totalSupply -= amount;
 
         emit Transfer(account, address(0), amount);
+
+        _afterTokenTransfer(account, address(0), amount);
     }
 
     function permit(
@@ -257,15 +250,21 @@ contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
         emit UnfreezeAccount(account);
     }
 
-    function updateMinSendInterval(uint newMinSendInterval) external onlyOwner {
-        //newMinSendInterval can be zero, no need for checking value
-        emit UpdateMinSendInterval(minSendInterval, newMinSendInterval);
-        minSendInterval = newMinSendInterval;
+    function updateAccountLockupPeriod(uint newPeriod) external onlyOwner {
+        // Update day based lockup period on the level of individual accounts.
+        accountLockupPeriod = newPeriod;
+        emit UpdateAccountLockupPeriod(accountLockupPeriod, newPeriod);
+    }
+
+    function updateContractLockupPeriod(uint newPeriod) external onlyOwner {
+        // Update day based lockup period on the level of the token contract.
+        contractLockupPeriod = newPeriod;
+        emit UpdateContractLockupPeriod(contractLockupPeriod, newPeriod);
     }
 
     function updateMaxSendAmount(uint newMaxSendAmount) external onlyOwner {
         //newMaxSendAmount can be zero, no need for checking value
-        emit UpdateMinSendInterval(maxSendAmount, newMaxSendAmount);
+        emit UpdateMaxSendAmount(maxSendAmount, newMaxSendAmount);
         maxSendAmount = newMaxSendAmount;
     }
 
@@ -287,7 +286,8 @@ contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
      * - `account` cannot be the zero address.
      */
     function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: mint to the zero address");
+        require(account != address(0), "FKT: mint to the zero address");
+        require(_totalSupply + amount <= _cap, "FKT: cap exceeded");
 
         _beforeTokenTransfer(address(0), account, amount);
 
@@ -319,7 +319,47 @@ contract FoundersKit is FoundersKitStorage, IERC20, IERC20Permit {
         address from,
         address to,
         uint256 amount
-    ) internal virtual {}
+    ) internal virtual {
+        // NOTE checks the validation on Transfer
+        if (from != address(0) && to != address(0)) {
+            // Lockup logic implementation here, based on time-locked method
+            // Condiser both of contract level lockup and account level lockup
+
+            // Account level lockup
+            if (accountLockupPeriod > 0) {
+                require(
+                    userFirstMint[from] + accountLockupPeriod * 1 days < block.timestamp,
+                    "FKT: Account level lockup"
+                );
+                userFirstMint[from] = block.timestamp; //don't update userFirstMint if  minSendInterval is 0
+            }
+
+            // Contract level lockup
+            if (contractLockupPeriod > 0) {
+                require(
+                    contractLockupStart + accountLockupPeriod * 1 days < block.timestamp,
+                    "FKT: Contract level lockup"
+                );
+            }
+
+            // Restrict the transfer amount
+            if (maxSendAmount > 0) {
+                require(
+                    amount <= maxSendAmount,
+                    "FKT: Transfer amount exceeds allowed transfer"
+                );
+            }
+        } else if (from == address(0)) { // Minting
+            // Check the transaction validation on minting
+            if (userFirstMint[to] == 0) {
+                userFirstMint[to] = block.timestamp;
+            }
+            // TODO No logic yet
+        } else if (to == address(0)) { // Burning
+            // Check the transaction validation on burning
+            // TODO No logic yet
+        }
+    }
 
     /**
      * @dev Hook that is called after any transfer of tokens. This includes
