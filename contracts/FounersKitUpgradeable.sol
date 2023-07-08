@@ -56,8 +56,9 @@ contract FoundersKitToken is
         __ERC20Permit_init("Founders Kit Token");
         __UUPSUpgradeable_init();
 
-        _mint(to, 51000000 * 10 ** decimals());
         _cap = cap * 10 ** decimals();
+        _mint(to, 51000000 * 10 ** decimals());
+
         contractLockupStart = block.timestamp;
     }
 
@@ -67,6 +68,23 @@ contract FoundersKitToken is
      */
     function decimals() public view virtual override returns (uint8) {
         return 0;
+    }
+
+    /**
+     * @dev Returns cap.
+     * @return cap
+     */
+    function capital() public view returns (uint256) {
+        return _cap;
+    }
+
+    /**
+     * @dev Checks if the account is frozen.
+     * @param account The address to check if frozen.
+     * @return bool if frozen, true else false
+     */
+    function isFrozen(address account) public view returns (bool) {
+        return _frozen[account];
     }
 
     /**
@@ -162,6 +180,8 @@ contract FoundersKitToken is
         address to,
         uint256 amount
     ) internal override {
+        // Checks frozen account
+        require(!_frozen[from], "FKT: Account Frozen");
         // Checks the validation on Transfer
         if (from != address(0) && to != address(0)) {
             // Account level lockup

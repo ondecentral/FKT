@@ -13,8 +13,8 @@ describe("FoundersKitToken", function () {
     FoundersKitToken = await ethers.getContractFactory("FoundersKitToken");
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
-    const CAP_VALUE = ethers.utils.parseUnits("10000", 0);  // example cap value, adapt as needed
-    fkt = await upgrades.deployProxy(FoundersKitToken, [owner.address, CAP_VALUE], {initializer: 'initialize', kind: 'uups'});
+    const CAP_VALUE = ethers.utils.parseUnits("100000000", 0);  // example cap value, adapt as needed
+    fkt = await upgrades.deployProxy(FoundersKitToken, [owner.address, CAP_VALUE], { initializer: 'initialize', kind: 'uups' });
 
     await fkt.deployed();
   });
@@ -48,7 +48,7 @@ describe("FoundersKitToken", function () {
 
       // Try to send 1 token from addr1 (0 tokens) to owner (10000 tokens).
       // `require` will evaluate false and revert the transaction.
-      await expect(fkt.connect(addr1).transfer(owner.address, 1)).to.be.revertedWith("Not enough tokens");
+      await expect(fkt.connect(addr1).transfer(owner.address, 1)).to.be.revertedWith("ERC20: transfer amount exceeds balance");
 
       // Owner balance shouldn't have changed.
       expect(await fkt.balanceOf(owner.address)).to.equal(initialOwnerBalance);
@@ -73,5 +73,67 @@ describe("FoundersKitToken", function () {
       const addr2Balance = await fkt.balanceOf(addr2.address);
       expect(addr2Balance).to.equal(50);
     });
+  });
+
+  describe("Minting", function () {
+    it("Should mint new tokens", async function () {
+      const initialTotalSupply = await fkt.totalSupply();
+      await fkt.mint(owner.address, 1000);
+      const finalTotalSupply = await fkt.totalSupply();
+
+      expect(finalTotalSupply).to.equal(initialTotalSupply.add(1000));
+    });
+
+    it("Should fail minting when cap is reached", async function () {
+      const cap = await fkt.capital();
+      const fails = cap.sub(await fkt.totalSupply()).add(1);
+
+      await expect(fkt.mint(owner.address, fails)).to.be.revertedWith("FKT: cap exceeded");
+    });
+  });
+
+  describe("Account Freezing", function () {
+    it("Should freeze and unfreeze an account", async function () {
+      expect(await fkt.isFrozen(addr1.address)).to.be.false;
+
+      await fkt.freezeAccount(addr1.address);
+      expect(await fkt.isFrozen(addr1.address)).to.be.true;
+
+      await fkt.unfreezeAccount(addr1.address);
+      expect(await fkt.isFrozen(addr1.address)).to.be.false;
+    });
+  });
+
+  describe("Update Functions", function () {
+    it("Should update accountLockupPeriod, contractLockupStart, contractLockupPeriod, and maxSendAmount", async function () {
+      await fkt.updateAccountLockupPeriod(10);
+      expect(await fkt.accountLockupPeriod()).to.equal(10);
+
+      await fkt.updateContractLockupStart(1234567890);
+      expect(await fkt.contractLockupStart()).to.equal(1234567890);
+
+      await fkt.updateContractLockupPeriod(30);
+      expect(await fkt.contractLockupPeriod()).to.equal(30);
+
+      await fkt.updateMaxSendAmount(1000);
+      expect(await fkt.maxSendAmount()).to.equal(1000);
+    });
+  });
+
+  describe("Transfer Restrictions", function () {
+    it("Should fail if account is frozen", async function () {
+      await fkt.freezeAccount(owner.address);
+      await expect(fkt.transfer(addr1.address, 1)).to.be.reverted;
+    });
+
+    it("Should fail if amount is over maxSendAmount", async function () {
+      await fkt.updateMaxSendAmount(100);
+      await expect(fkt.transfer(addr1.address, 101)).to.be.revertedWith("FKT: Transferamount exceeds allowed transfer");
+    });
+
+    // For testing the lockup logic, you would typically need to advance time using a library or framework
+    // that can manipulate the EVM's time, such as the `evm_increaseTime` function provided by ganache-cli
+    // or the `increaseTimeTo` function provided by OpenZeppelin test-helpers.
+    // for time manipulation, but you may want to check if this has been added in a more recent version.
   });
 });
