@@ -3,13 +3,12 @@
  */
 require("@nomiclabs/hardhat-waffle");
 // require("@nomiclabs/hardhat-ethers");
-// require("@nomiclabs/hardhat-etherscan");
-require("@nomicfoundation/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify");
+require("@nomiclabs/hardhat-etherscan");
 
 require("hardhat-contract-sizer");
 require("hardhat-gas-reporter");
 require("dotenv").config();
+// hardhat.config.js
 require('@openzeppelin/hardhat-upgrades');
 
 module.exports = {
