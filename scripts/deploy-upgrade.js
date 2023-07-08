@@ -19,7 +19,7 @@ async function main() {
     const OWNER_ADDRESS = "YOUR_OWNER_ADDRESS";
     
     console.log("Deploying FoundersKitToken...");
-    const fkt = await hre.upgrades.deployProxy(FoundersKitToken, [OWNER_ADDRESS, CAP_VALUE], { initializer: 'initialize' });
+    const fkt = await hre.upgrades.deployProxy(FoundersKitToken, [OWNER_ADDRESS, CAP_VALUE], {initializer: 'initialize', kind: 'uups'});
 
     await fkt.deployed();
     console.log("FoundersKitToken deployed to:", fkt.address);
