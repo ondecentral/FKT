@@ -14,7 +14,7 @@ async function main() {
     const fktAddress = "YOUR_EXISTING_CONTRACT_ADDRESS"; // Replace with your existing contract address
 
     console.log("Upgrading FoundersKitToken...");
-    const fkt = await hre.upgrades.upgradeProxy(fktAddress, FoundersKitTokenV2, );
+    const fkt = await hre.upgrades.upgradeProxy(fktAddress, FoundersKitTokenV2);
 
     console.log("FoundersKitToken upgraded at:", fkt.address);
 }

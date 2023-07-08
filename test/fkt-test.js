@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers, upgrades } = require("hardhat");
+const { addDays } = require("../scripts/helpers/misc-utils");
 
 describe("FoundersKitToken", function () {
   let FoundersKitToken;
@@ -131,9 +132,42 @@ describe("FoundersKitToken", function () {
       await expect(fkt.transfer(addr1.address, 101)).to.be.revertedWith("FKT: Transferamount exceeds allowed transfer");
     });
 
+    it("Should fail if account level lockup is set up", async function () {
+      await fkt.updateAccountLockupPeriod(10); // 10 days
+      await addDays(9); // Passing 9 days
+      await expect(fkt.transfer(addr1.address, 100)).to.be.revertedWith("FKT: Account level lockup");
+      await addDays(1); // Passing 1 day more, 10 days passed
+      await expect(fkt.transfer(addr1.address, 100)).to.be.not.reverted;
+    });
+
+    it("Should fail if contract level lockup is set up", async function () {
+      await fkt.updateContractLockupPeriod(10); // 10 days
+      await addDays(9); // Passing 9 days
+      await expect(fkt.transfer(addr1.address, 100)).to.be.revertedWith("FKT: Contract level lockup");
+      await addDays(1); // Passing 1 day more, 10 days passed
+      await expect(fkt.transfer(addr1.address, 100)).to.be.not.reverted;
+    });
+
     // For testing the lockup logic, you would typically need to advance time using a library or framework
     // that can manipulate the EVM's time, such as the `evm_increaseTime` function provided by ganache-cli
     // or the `increaseTimeTo` function provided by OpenZeppelin test-helpers.
     // for time manipulation, but you may want to check if this has been added in a more recent version.
+  });
+
+  describe("Upgrade", function () {
+    it("Should has the same right owner on V2", async function () {
+      const FoundersKitTokenV2 = await ethers.getContractFactory("FoundersKitTokenV2Mock");
+      const fkt2 = await hre.upgrades.upgradeProxy(fkt, FoundersKitTokenV2);
+      expect(await fkt.owner()).to.equal(owner.address);
+      expect(await fkt2.owner()).to.equal(await fkt.owner());
+      expect(fkt2.address).to.equal(fkt.address);
+    });
+
+    it("Should keep the total supply of tokens to the owner on V2", async function () {
+      const ownerBalance = await fkt.balanceOf(owner.address);
+      const FoundersKitTokenV2 = await ethers.getContractFactory("FoundersKitTokenV2Mock");
+      const fkt2 = await hre.upgrades.upgradeProxy(fkt, FoundersKitTokenV2);
+      expect(await fkt.totalSupply()).to.equal(await fkt.totalSupply());
+    });
   });
 });
