@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.17;
+pragma solidity >0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -8,11 +8,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
- * @title Founders Kit Token (FKT)
+ * @title Lucia Token (LCI)
  * @dev ERC20 token contract with additional features such as freezing/unfreezing accounts, lockup periods,
  * and transfer restrictions.
  */
-contract FoundersKitToken is
+contract LuciaLCIToken is
     Initializable,
     ERC20Upgradeable,
     OwnableUpgradeable,
@@ -50,14 +50,14 @@ contract FoundersKitToken is
      * @param cap The maximum supply of tokens.
      */
     function initialize(address to, uint256 cap) public initializer {
-        require(cap > 0, "FKT: cap is 0");
-        __ERC20_init("Founders Kit Token", "FKT");
+        require(cap > 0, "LCI: cap is 0");
+        __ERC20_init("Lucia Token", "LCI");
         __Ownable_init();
-        __ERC20Permit_init("Founders Kit Token");
+        __ERC20Permit_init("Lucia Token");
         __UUPSUpgradeable_init();
 
         _cap = cap * 10 ** decimals();
-        _mint(to, 51000000 * 10 ** decimals());
+        _mint(to, 20000 * 10 ** decimals());
 
         contractLockupStart = block.timestamp;
     }
@@ -67,7 +67,7 @@ contract FoundersKitToken is
      * @return The number of decimal places.
      */
     function decimals() public view virtual override returns (uint8) {
-        return 0;
+        return 18;
     }
 
     /**
@@ -101,7 +101,7 @@ contract FoundersKitToken is
      * @param account The account to freeze.
      */
     function freezeAccount(address account) external onlyOwner {
-        require(!_frozen[account], "FKT: Has been frozen");
+        require(!_frozen[account], "LCI: Has been frozen");
         _frozen[account] = true;
         emit FreezeAccount(account);
     }
@@ -111,7 +111,7 @@ contract FoundersKitToken is
      * @param account The account to unfreeze.
      */
     function unfreezeAccount(address account) external onlyOwner {
-        require(_frozen[account], "FKT: Has been unfrozen");
+        require(_frozen[account], "LCI: Has been unfrozen");
         _frozen[account] = false;
         emit UnfreezeAccount(account);
     }
@@ -181,7 +181,7 @@ contract FoundersKitToken is
         uint256 amount
     ) internal override {
         // Checks frozen account
-        require(!_frozen[from], "FKT: Account Frozen");
+        require(!_frozen[from], "LCI: Account Frozen");
         // Checks the validation on Transfer
         if (from != address(0) && to != address(0)) {
             // Account level lockup
@@ -189,7 +189,7 @@ contract FoundersKitToken is
                 require(
                     userFirstMint[from] + accountLockupPeriod * 1 days <
                         block.timestamp,
-                    "FKT: Account level lockup"
+                    "LCI: Account level lockup"
                 );
                 userFirstMint[from] = block.timestamp;
             }
@@ -199,7 +199,7 @@ contract FoundersKitToken is
                 require(
                     contractLockupStart + contractLockupPeriod * 1 days <
                         block.timestamp,
-                    "FKT: Contract level lockup"
+                    "LCI: Contract level lockup"
                 );
             }
 
@@ -207,12 +207,12 @@ contract FoundersKitToken is
             if (maxSendAmount > 0) {
                 require(
                     amount <= maxSendAmount,
-                    "FKT: Transferamount exceeds allowed transfer"
+                    "LCI: Transferamount exceeds allowed transfer"
                 );
             }
         } else if (from == address(0)) {
             // Minting
-            require(totalSupply() + amount <= _cap, "FKT: cap exceeded");
+            require(totalSupply() + amount <= _cap, "LCI: cap exceeded");
             if (userFirstMint[to] == 0) {
                 userFirstMint[to] = block.timestamp;
             }

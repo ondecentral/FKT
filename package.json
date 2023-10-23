@@ -10,7 +10,9 @@
     "clean": "npx hardhat clean",
     "size": "yarn hardhat size-contracts",
     "deploy-goerli": "npx hardhat run scripts/deploy.js --network goerli",
-    "deploy-mumbai": "npx hardhat run scripts/deploy.js --network mumbai"
+    "deploy-mumbai": "npx hardhat run scripts/deploy.js --network mumbai",
+    "deploy-goerli-luci": "npx hardhat run scripts/deploy-luci.js --network goerli",
+    "deploy-mumbai-luci": "npx hardhat run scripts/deploy-luci.js --network mumbai"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.4.0",

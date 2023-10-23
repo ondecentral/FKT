@@ -2,7 +2,6 @@ const {BigNumber} = require('bignumber.js');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const hre = require('hardhat');
-const { ethers } = require('hardhat');
 
 const getDb = () => low(new FileSync('./data/contracts.json'));
 const sleep = (milliseconds) => {

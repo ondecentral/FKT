@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.17;
+pragma solidity >0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -8,11 +8,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
- * @title Founders Kit Token (FKT)
+ * @title Lucia Token (LCI)
  * @dev ERC20 token contract with additional features such as freezing/unfreezing accounts, lockup periods,
  * and transfer restrictions.
  */
-contract FoundersKitTokenV2Mock is
+contract LCITokenV2Mock is
     Initializable,
     ERC20Upgradeable,
     OwnableUpgradeable,
@@ -171,8 +171,7 @@ contract FoundersKitTokenV2Mock is
         address from,
         address to,
         uint256 amount
-    ) internal override {
-    }
+    ) internal override {}
 
     /**
      * @dev Authorizes an upgrade to the contract's implementation.

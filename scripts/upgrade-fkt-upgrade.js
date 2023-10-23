@@ -10,11 +10,11 @@ async function main() {
         deployer.address
     );
 
-    const FoundersKitTokenV2 = await hre.ethers.getContractFactory("FoundersKitTokenV2");
+    const LCITokenV2Mock = await hre.ethers.getContractFactory("LCITokenV2Mock");
     const fktAddress = "YOUR_EXISTING_CONTRACT_ADDRESS"; // Replace with your existing contract address
 
     console.log("Upgrading FoundersKitToken...");
-    const fkt = await hre.upgrades.upgradeProxy(fktAddress, FoundersKitTokenV2);
+    const fkt = await hre.upgrades.upgradeProxy(fktAddress, LCITokenV2Mock);
 
     console.log("FoundersKitToken upgraded at:", fkt.address);
 }
